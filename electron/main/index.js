@@ -1,8 +1,12 @@
 'use strict';
 
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
 import { format as formatUrl } from 'url';
+
+import ptp from "pdf-to-printer";
+var pdf = require("pdf-creator-node");
+const fs = require('fs')
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
@@ -61,3 +65,19 @@ app.on('activate', () => {
 app.on('ready', () => {
   mainWindow = createMainWindow();
 });
+
+
+ipcMain.on('print', (event, arg) =>{
+  var html = fs.readFileSync("assets/receipt.html", "utf8");
+
+  const options = {
+    width: '80mm',
+    height: '80mm',
+    orientation: 'portrait',
+  }
+
+  pdf.create({html, data: {}, path: 'assets/bill.pdf', type: ''}, options)
+  .then(() => {
+    ptp.print("assets/bill.pdf")
+  })
+})
